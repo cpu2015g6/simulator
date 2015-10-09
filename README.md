@@ -1,5 +1,5 @@
 # simulator
-make
 
+make</br>
 ./a バイナリ
 でアセンブラを出します。
