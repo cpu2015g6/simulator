@@ -24,8 +24,11 @@ FILE* openw(const char* filename){
 
 int read32(FILE* fp,uint32_t* inst){
   size_t readlen;
-  readlen=fread(inst,sizeof(uint32_t),1,fp);
-
+  unsigned char a[4]={};
+  readlen=fread(a,sizeof(unsigned char),4,fp);
+  //printf("%x,%x,%x,%x\n",a[0],a[1],a[2],a[3]);
+  *inst=(uint32_t)a[0]*0x1000000+(uint32_t)a[1]*0x10000+(uint32_t)a[2]*0x100+(uint32_t)a[3];
+  
   if(feof(fp)==1){
     return 0;
   }else if(readlen<1 && feof(fp)==0){
@@ -52,11 +55,47 @@ uint32_t takebits(uint32_t inst,int from,int to){
 
 char* asmname(char* orgname){
   char* ret=malloc(sizeof(char)*100);
-  strcpy(ret,"asm_");
+  strcpy(ret,"");
   strcat(ret,orgname);
   char* ex=strstr(ret,".");
   if(ex!=NULL)
     strcpy(ex,"");
   strcat(ret,".txt");
   return ret;
+}
+
+int loadprog(FILE* in,uint32_t* program,int maxlength){
+  int i=0;
+  for(i=0;i<maxlength;i++){
+    uint32_t inst;
+    if(read32(in,&inst))
+      program[i]=inst;
+    else
+      break;
+  }
+  int proglength=i;
+  if(feof(in)==0){
+    printf("program too long! change settings in 'loadprog'\n");
+    exit(1);
+  }
+  return proglength;
+}
+
+int u2i(uint32_t u){
+  Typechanger uni;
+  uni.u=u;
+  return uni.i;
+}
+
+uint32_t i2u(int i){
+  Typechanger uni;
+  uni.i=i;
+  return uni.u;
+}
+
+int u2i16(uint32_t u){
+  u*=0x10000;
+  int i=u2i(u);
+  i/=0x10000;
+  return i;
 }

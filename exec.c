@@ -3,142 +3,250 @@
 #include <stdlib.h>
 #include "iroiro.h"
 #include "exec.h"
+#include "fpu.h"
 
-void exec(uint32_t inst,FILE *fp){
+uint32_t memory[100000];
+uint32_t r[256];
+
+int exec(uint32_t inst,int pc,int execmode,FILE *fp){
+  int nextpc=pc+1;
   uint32_t opcode=takebits(inst,0,8);
-  uint32_t reg1=takebits(inst,8,16);
-  uint32_t reg2=takebits(inst,16,24);
-  uint32_t reg3=takebits(inst,24,32);
-  uint32_t imm=takebits(inst,8,32);
+  uint32_t rt=takebits(inst,8,16);
+  uint32_t ra=takebits(inst,16,24);
+  uint32_t rb=takebits(inst,24,32);
+  uint32_t imm=takebits(inst,16,32);
   //  printf("%x:%x %x %x %x\n",inst,opcode,reg1,reg2,reg3);
 
-  char* opname="!unassigned opcode!";
-  int argnum=0;
+  char* opname;
+  int argnum;
   
   switch(opcode){
   case 0xD0:
     opname="limm";
     argnum=1;
+    if(execmode){
+      r[rt]=imm;
+    }
     break;
 
   case 0xD4:
     opname="j";
     argnum=1;
+    if(execmode){
+      nextpc=pc+u2i16(imm);
+      r[rt]=pc+1;
+    }
     break;
 
   case 0xD5:
     opname="jz";
     argnum=1;
+    if(execmode){
+      if(r[rt]==0){
+	nextpc=pc+u2i16(imm);
+      } 
+    }
     break;
-
+    
   case 0xD6:
     opname="jr";
     argnum=3;
+    if(execmode){
+      nextpc=ra;
+      r[rt]=pc+1;
+    }
     break;
 
   case 0xD8:
     opname="stw";
     argnum=3;
+    if(execmode){
+      memory[rt]=ra;
+    }
     break;
 
   case 0xD9:
     opname="ldw";
     argnum=3;
+    if(execmode){
+      rt=memory[ra];
+    }
     break;
 
   case 0xDA:
     opname="str";
     argnum=3;
+    if(execmode){
+      int i=0;
+      for(i=0;i<=rb-ra;i++){
+	memory[rt+i]=r[i+ra];
+      }
+    }
     break;
 
   case 0xDB:
     opname="ldr";
     argnum=3;
+    if(execmode){
+      int i=0;
+      for(i=0;i<=rb-ra;i++){
+	r[i+ra]=memory[rt+i];
+      }
+    }
     break;
 
   case 0xE0:
     opname="add";
     argnum=3;
+    if(execmode){
+      r[rt]=r[ra]+r[rb];
+    }
     break;
 
   case 0xE1:
     opname="sub";
     argnum=3;
+    if(execmode){
+      r[rt]=r[ra]-r[rb];
+    }
     break;
 
   case 0xE2:
     opname="and";
     argnum=3;
+    if(execmode){
+      r[rt]=r[ra]&r[rb];
+    }
     break;
 
   case 0xE3:
     opname="or";
     argnum=3;
+    if(execmode){
+      r[rt]=r[ra]|r[rb];
+    }
     break;
 
   case 0xE4:
     opname="xor";
     argnum=3;
+    if(execmode){
+      r[rt]=r[ra]^r[rb];
+    }
     break;
 
   case 0xE5:
     opname="not";
     argnum=3;
+    if(execmode){
+      r[rt]=~r[ra];
+    }
     break;
 
   case 0xE6:
     opname="shl";
     argnum=3;
+    if(execmode){
+      r[rt]=r[ra]<<r[rb];
+    }
     break;
 
   case 0xE7:
     opname="shr";
     argnum=3;
+    if(execmode){
+      r[rt]=r[ra]>>r[rb];
+    }
     break;
 
   case 0xF0:
     opname="eq";
     argnum=3;
+    if(execmode){
+      if(r[ra]==r[rb])
+	r[rt]=0;
+      else
+	r[rt]=0xcafecafe;
+    }
     break;
 
   case 0xF1:
     opname="neq";
     argnum=3;
+    if(execmode){
+      if(r[ra]!=r[rb])
+	r[rt]=0;
+      else
+	r[rt]=0xcafecafe;
+    }
     break;
 
   case 0xF2:
     opname="gt";
     argnum=3;
+    if(execmode){
+      if(r[ra]>r[rb])
+	r[rt]=0;
+      else
+	r[rt]=0xcafecafe;
+    }
     break;
 
   case 0xF3:
     opname="gte";
     argnum=3;
+    if(execmode){
+      if(r[ra]>=r[rb])
+	r[rt]=0;
+      else
+	r[rt]=1;
+    }
     break;
     
   case 0xF4:
     opname="lt";
     argnum=3;
+    if(execmode){
+      if(r[ra]<r[rb])
+	r[rt]=0;
+      else
+	r[rt]=1;
+    }
     break;
 
   case 0xF5:
     opname="lte";
     argnum=3;
+    if(execmode){
+      if(r[ra]<=r[rb])
+	r[rt]=0;
+      else
+	r[rt]=1;
+    }
     break;
 
   case 0xF8:
     opname="fadd";
     argnum=3;
+    if(execmode){
+      r[rt]=fadd(r[ra],r[rb]);
+    }
     break;
 
   case 0xF9:
     opname="fmul";
     argnum=3;
+    if(execmode){
+      r[rt]=fmul(r[ra],r[rb]);
+    }
     break;
 
   case 0xFA:
     opname="fdiv";
     argnum=3;
+    if(execmode){
+      r[rt]=fdiv(r[ra],r[rb]);
+    }
     break;
 
   case 0xFB:
@@ -159,16 +267,30 @@ void exec(uint32_t inst,FILE *fp){
   case 0xFE:
     opname="fsqrt";
     argnum=3;
+    if(execmode){
+      r[rt]=fsqrt(r[ra]);
+    }
     break;
+
+  default:
+    opname="!unassigned opcode!";
+    argnum=0;
+    break;
+    
   }
 
-  fprintf(fp,"%s\t",opname);
-  if(argnum==1)
-    fprintf(fp,"r%x\t%x",reg1,imm);
-  else if(argnum==3)
-    fprintf(fp,"r%x\tr%x\tr%x",reg1,reg2,reg3);
-  fprintf(fp,"\n");
+  if(execmode==0){
+    fprintf(fp,"%s\t",opname);
+    if(argnum==1)
+      fprintf(fp,"%x\t%x",rt,imm);
+    else if(argnum==3)
+      fprintf(fp,"%x\t%x\t%x",rt,ra,rb);
+    else
+      fprintf(fp,"instruction:%x",inst);
+    fprintf(fp,"\n");
+  }
   
+  return nextpc;
 }
 
 
