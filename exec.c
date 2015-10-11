@@ -7,6 +7,7 @@
 
 uint32_t memory[100000];
 uint32_t r[256];
+int unassignedfound=0;
 
 int exec(uint32_t inst,int pc,int execmode,FILE *fp){
   int nextpc=pc+1;
@@ -275,16 +276,17 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
   default:
     opname="!unassigned opcode!";
     argnum=0;
+    unassignedfound=1;
     break;
     
   }
 
-  if(execmode==0){
+  if(fp!=NULL){
     fprintf(fp,"%s\t",opname);
     if(argnum==1)
-      fprintf(fp,"%x\t%x",rt,imm);
+      fprintf(fp,"0x%x\t0x%x",rt,imm);
     else if(argnum==3)
-      fprintf(fp,"%x\t%x\t%x",rt,ra,rb);
+      fprintf(fp,"0x%x\t0x%x\t0x%x",rt,ra,rb);
     else
       fprintf(fp,"instruction:%x",inst);
     fprintf(fp,"\n");
@@ -294,3 +296,45 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
 }
 
 
+void dumpreg(int hexmode,FILE* fp){
+  if(hexmode)
+    fprintf(fp,"register(hex)");
+  else
+    fprintf(fp,"register(signed decimal)");
+  int i=0;
+  for(i=0;i<256;i++){
+    if(i%8==0){
+      if(hexmode)
+	fprintf(fp,"\n%2x:",i);
+      else
+	fprintf(fp,"\n%2x:",i);
+    }
+    if(hexmode)
+      fprintf(fp,"%08x ",r[i]);
+    else
+      fprintf(fp,"%8d ",r[i]);
+  }
+  fprintf(fp,"\n");
+}
+
+
+void dumpmem(int num,int hexmode,FILE* fp){
+  if(hexmode)
+    fprintf(fp,"memory(hex)");
+  else
+    fprintf(fp,"memory(signed decimal)");
+  int i=0;
+  for(i=0;i<num;i++){
+    if(i%8==0){
+      if(hexmode)
+	fprintf(fp,"\n%2x:",i);
+      else
+	fprintf(fp,"\n%2x:",i);
+    }
+    if(hexmode)
+      fprintf(fp,"%08x ",memory[i]);
+    else
+      fprintf(fp,"%8d ",memory[i]);
+  }
+  fprintf(fp,"\n");
+}

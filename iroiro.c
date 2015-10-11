@@ -53,14 +53,14 @@ uint32_t takebits(uint32_t inst,int from,int to){
   return ret;
 }
 
-char* asmname(char* orgname){
+char* changeex(char* orgname,char* exname){
   char* ret=malloc(sizeof(char)*100);
   strcpy(ret,"");
   strcat(ret,orgname);
   char* ex=strstr(ret,".");
   if(ex!=NULL)
     strcpy(ex,"");
-  strcat(ret,".txt");
+  strcat(ret,exname);
   return ret;
 }
 
