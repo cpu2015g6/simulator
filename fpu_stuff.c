@@ -1,12 +1,22 @@
 #include <stdio.h>
 #include <stdint.h>
 /*
-  a,bはNaNではないとする。
-  a>b...1
-  a=b...0
-  a<b...-1
-  err...未定義
+  char to uint
+  priorityencoder
+  printbin
+  encode
  */
+
+uint32_t ctou(char *c){
+  int i = 9;
+  uint32_t u=0;
+  while(i < 32){
+    if(c[i] == '1')
+      u += 1 << (31 - i);
+    i++;
+  }
+  return u;
+}
 
 int pencoder(uint32_t x){//software instruction
   int i = 31;
@@ -17,15 +27,31 @@ int pencoder(uint32_t x){//software instruction
   }
   return 31 - i;
 }
- 
 
-void printbin(uint32_t x) {
-    int i;
-    for (i = 31; i >= 0; --i) {
-        printf("%d", (x >> i) & 1);
-        if (i == 31 || i == 23) printf(" ");
-    }
-    printf("\n");
+void printbinn(unsigned int a){
+  printf("\"");
+  int i=31;
+  while(i+1){
+    if((a >> i) % 2)
+      printf("1");
+    else
+      printf("0");
+    i--;
+  }
+  printf("\", ");
+}
+ 
+void printbin(unsigned int a){
+  printf("\"");
+  int i=31;
+  while(i+1){
+    if((a >> i) % 2)
+      printf("1");
+    else
+      printf("0");
+    i--;
+  }
+  printf("\",\n");
 }
 
 int encode(uint32_t a){

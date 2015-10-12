@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdint.h>
 
-uint32_t absfadd(uint32_t a, uint32_t b);
-uint32_t revfadd(uint32_t a, uint32_t b);
-int encode(uint32_t a);
+extern uint32_t absfadd(uint32_t a, uint32_t b);
+extern uint32_t revfadd(uint32_t a, uint32_t b);
+extern int encode(uint32_t a);
 
 uint32_t fadd(uint32_t a, uint32_t b){
 
