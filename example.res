@@ -65,7 +65,7 @@ jz	0x3	0xfffd
 program reached the end without error.
 
 register(signed decimal)
- 0:      55        0        1 -889271554        0        0        0        0 
+ 0:      55        0        1        1        0        0        0        0 
  8:       0        0        0        0        0        0        0        0 
 10:       0        0        0        0        0        0        0        0 
 18:       0        0        0        0        0        0        0        0 
