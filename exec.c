@@ -200,7 +200,7 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
       if(r[ra]>=r[rb])
 	r[rt]=0;
       else
-	r[rt]=1;
+	r[rt]=0xcafecafe;
     }
     break;
     
@@ -211,7 +211,7 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
       if(r[ra]<r[rb])
 	r[rt]=0;
       else
-	r[rt]=1;
+	r[rt]=0xcafecafe;
     }
     break;
 
@@ -222,7 +222,7 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
       if(r[ra]<=r[rb])
 	r[rt]=0;
       else
-	r[rt]=1;
+	r[rt]=0xcafecafe;
     }
     break;
 
