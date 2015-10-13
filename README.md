@@ -1,6 +1,7 @@
 # simulator
 まだあんまり試してないのでバグがたくさんあると思います。</br>
-exampleとexample.resがちょっとした動作例です。</br>
+exampleとxample.resがちょっとした動作例です。</br>
+make後"./debug example"をすれば同じものが出てくるはずです。</br>
 </br>
 </br>
 ●逆アセンブラ＆シミュレータ</br>
