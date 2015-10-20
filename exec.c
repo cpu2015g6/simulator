@@ -5,7 +5,7 @@
 #include "exec.h"
 #include "fpu.h"
 
-uint32_t memory[100000];
+uint32_t memory[16777216];
 uint32_t r[256];
 int unassignedfound=0;
 
@@ -29,7 +29,36 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
       r[rt]=imm;
     }
     break;
+    
+  case 0xD1:
+    opname="cmp";
+    argnum=3;
+    if(execmode){
+      if (u2i(r[ra])>u2i(r[rb]))
+	r[rt]=2;
+      else if (u2i(r[ra])==u2i(r[rb]))
+	r[rt]=1;
+      else
+	r[rt]=0;
+    }
+    break;
 
+  case 0xD2:
+    opname="in";
+    argnum=1;
+    if(execmode){
+      ;
+    }
+    break;
+
+  case 0xD3:
+    opname="out";
+    argnum=1;
+    if(execmode){
+      printf("%x\n",r[rt]);
+    }
+    break;
+    
   case 0xD4:
     opname="j";
     argnum=1;
@@ -40,20 +69,10 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
     break;
 
   case 0xD5:
-    opname="jz";
-    argnum=1;
-    if(execmode){
-      if(r[rt]==0){
-	nextpc=pc+u2i16(imm);
-      } 
-    }
-    break;
-    
-  case 0xD6:
     opname="jr";
     argnum=3;
     if(execmode){
-      nextpc=ra;
+      nextpc=r[ra];
       r[rt]=pc+1;
     }
     break;
@@ -62,7 +81,7 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
     opname="stw";
     argnum=3;
     if(execmode){
-      memory[rt]=ra;
+      memory[r[rt]]=r[ra];
     }
     break;
 
@@ -70,31 +89,10 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
     opname="ldw";
     argnum=3;
     if(execmode){
-      rt=memory[ra];
+      r[rt]=memory[r[ra]];
     }
     break;
 
-  case 0xDA:
-    opname="str";
-    argnum=3;
-    if(execmode){
-      int i=0;
-      for(i=0;i<=rb-ra;i++){
-	memory[rt+i]=r[i+ra];
-      }
-    }
-    break;
-
-  case 0xDB:
-    opname="ldr";
-    argnum=3;
-    if(execmode){
-      int i=0;
-      for(i=0;i<=rb-ra;i++){
-	r[i+ra]=memory[rt+i];
-      }
-    }
-    break;
 
   case 0xE0:
     opname="add";
@@ -145,7 +143,7 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
     break;
 
   case 0xE6:
-    opname="shl";
+    opname="sll";
     argnum=3;
     if(execmode){
       r[rt]=r[ra]<<r[rb];
@@ -153,7 +151,7 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
     break;
 
   case 0xE7:
-    opname="shr";
+    opname="srl";
     argnum=3;
     if(execmode){
       r[rt]=r[ra]>>r[rb];
@@ -161,68 +159,68 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
     break;
 
   case 0xF0:
-    opname="eq";
+    opname="jreq";//kono siri-zu zenbu
     argnum=3;
     if(execmode){
-      if(r[ra]==r[rb])
-	r[rt]=0;
-      else
-	r[rt]=1;
+      if(r[ra]==1){
+	nextpc=r[rb];
+      }
+      r[rt]=pc+1;
     }
     break;
 
   case 0xF1:
-    opname="neq";
+    opname="jrneq";
     argnum=3;
     if(execmode){
-      if(r[ra]!=r[rb])
-	r[rt]=0;
-      else
-	r[rt]=1;
+      if(r[ra]!=1){
+	nextpc=r[rb];
+      }
+      r[rt]=pc+1;
     }
     break;
 
   case 0xF2:
-    opname="gt";
+    opname="jrgt";
     argnum=3;
     if(execmode){
-      if(r[ra]>r[rb])
-	r[rt]=0;
-      else
-	r[rt]=1;
+      if(r[ra]==2){
+	nextpc=r[rb];
+      }
+      r[rt]=pc+1;
     }
     break;
 
   case 0xF3:
-    opname="gte";
+    opname="jrgte";
     argnum=3;
     if(execmode){
-      if(r[ra]>=r[rb])
-	r[rt]=0;
-      else
-	r[rt]=1;
+      if(r[ra]!=0){
+	nextpc=r[rb];
+      }
+      r[rt]=pc+1;
     }
     break;
     
   case 0xF4:
-    opname="lt";
+    opname="jrlt";
     argnum=3;
     if(execmode){
-      if(r[ra]<r[rb])
-	r[rt]=0;
-      else
-	r[rt]=1;
+      if(r[ra]==0){
+	nextpc=r[rb];
+      }
+      r[rt]=pc+1;
     }
     break;
 
   case 0xF5:
-    opname="lte";
+    opname="jrlte";
     argnum=3;
     if(execmode){
-      if(r[ra]<=r[rb])
-	r[rt]=0;
-      else
-	r[rt]=1;
+      if(r[ra]!=2){
+	nextpc=r[rb];
+      }
+      r[rt]=pc+1;
     }
     break;
 
@@ -273,6 +271,19 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
     }
     break;
 
+  case 0xFF:
+    opname="fcmp";
+    argnum=3;
+    if(execmode){
+      if(r[ra]>r[rb])
+	r[rt]=2;
+      else if(r[ra]==r[rb])
+	r[rt]=1;
+      else
+	r[rt]=0;
+    }
+    break;
+    
   default:
     opname="!unassigned opcode!";
     argnum=0;
@@ -284,11 +295,14 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
   if(fp!=NULL){
     fprintf(fp,"%s\t",opname);
     if(argnum==1)
-      fprintf(fp,"0x%x\t0x%x",rt,imm);
+      fprintf(fp,"0x%x\t0x%x\t\t",rt,imm);
     else if(argnum==3)
-      fprintf(fp,"0x%x\t0x%x\t0x%x",rt,ra,rb);
+      fprintf(fp,"0x%x\t0x%x\t0x%x\t",rt,ra,rb);
     else
       fprintf(fp,"instruction:%x",inst);
+    fprintf(fp,"#%03x",pc);
+    if(execmode)
+      fprintf(fp," 0:%x 1:%x 2:%x 3:%x 4:%x 5:%x 6:%x 7:%x 8:%x 9:%x 20:%x mem2:%x  b00004:%x",r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],r[8],r[9],r[0x20],memory[2],memory[0xb00004]);
     fprintf(fp,"\n");
   }
   
@@ -338,3 +352,4 @@ void dumpmem(int num,int hexmode,FILE* fp){
   }
   fprintf(fp,"\n");
 }
+

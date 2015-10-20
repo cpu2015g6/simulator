@@ -11,11 +11,16 @@ int mymain(int argc,char* argv[]){
   FILE* out=openw(changeex(argv[1],".myasm"));
   FILE* log=openw(changeex(argv[1],".log"));
   
-  //load program
-  uint32_t program[10000];
-  int proglength=loadprog(in,program,10000);
+  //load program and copy to memory
+  #define PROGMAXLENGTH 10000
+  uint32_t program[PROGMAXLENGTH];
+  int proglength=loadprog(in,program,PROGMAXLENGTH);
   fclose(in);
 
+  int j=0;
+  for(j=0;j<PROGMAXLENGTH;j++)
+    memory[j]=program[j];//
+  
   //write out assembly
   int i=0;
   for(i=0;i<proglength;i++){
@@ -57,7 +62,8 @@ int mymain(int argc,char* argv[]){
       fprintf(log,"aborting...\n");
       break;
     }
-    if(i==10000){
+    #define MAXEXELENGTH 10000
+    if(i==MAXEXELENGTH){
       printf("program executed 10000 instructions without error.\n");
       printf("aborting...\n");
       fprintf(log,"program executed 10000 instructions without error.\n");
