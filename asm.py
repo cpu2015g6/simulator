@@ -11,7 +11,7 @@ opdict={"limm":0xD0,
         "out":0xD3,
         "j":0xD4,
         "jr":0xD5,
-        "halt":0xD6,#simlator senyou
+        "hlt":0xD6,#simlator senyou
         "stw":0xD8,
         "ldw":0xD9,
         "str":0xDA,
@@ -36,13 +36,13 @@ opdict={"limm":0xD0,
         "fsin":0xFB,
         "fcos":0xFC,
         "fatan":0xFD,
-        "fqrt":0xFE,
+        "fsqrt":0xFE,
         "fcmp":0xFF,
         }
 
 ignore={".text",".globl",".align",".data",".literal8"}
 nowrite=ignore
-onereg={"limm","j","in","out","halt"}
+onereg={"limm","j","in","out","hlt"}
 
 def get_labels(program):
     instnum=0
@@ -65,7 +65,7 @@ def imm(s,label):
     if s+":" in label:
         return label[s+":"]
     else:
-        return int(s)
+        return int(s,0)
 
 def float_to_cfloat(a):
     if a>=0:
@@ -110,8 +110,8 @@ def write_binary(fp,fp_comment,program,program_org,labels):
     instno=0
     for line,inst in enumerate(program):
         wrote_flag=False
-        print line
-        print inst
+        #print line
+        #print inst
         if len(inst)==0:#nothing
             pass
         elif inst[0] in ignore:

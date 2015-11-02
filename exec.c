@@ -5,9 +5,24 @@
 #include "exec.h"
 #include "fpu.h"
 
-uint32_t memory[16777216];
+#define MEM_STACK 0x0b00000
+#define MEM_HEAP  0x0c00000
+#define MEM_END   0x1000000
+uint32_t data[MEM_DATA];
+uint32_t stack[MEM_END-MEM_HEAP];
+uint32_t heap[MEM_HEAP-MEM_STACK];
 uint32_t r[256];
-int unassignedfound=0;
+
+uint32_t* memory(int no){
+  if(0<=no && no<MEM_DATA)
+    return data+(no);
+  else if(MEM_STACK<=no && no<MEM_HEAP)
+    return stack+(no-MEM_STACK);
+  else if(MEM_HEAP<= no && no<MEM_END)
+    return heap+(no-MEM_HEAP);
+  else
+    return NULL;
+}
 
 int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout){
   int nextpc=pc+1;
@@ -86,7 +101,13 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="stw";
     argnum=3;
     if(execmode){
-      memory[r[rt]]=r[ra];
+      uint32_t* address=memory(r[rt]);
+      if(address==NULL){
+	printf("tried to write bad address 0x%x in r%x. aborting...\n",r[rt],rt);
+	fprintf(fp,"tried to write bad address 0x%x in r%x. aborting...\n",r[rt],rt);
+        return BADMEMORY;
+      }
+      *address=r[ra];
     }
     break;
 
@@ -94,7 +115,13 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="ldw";
     argnum=3;
     if(execmode){
-      r[rt]=memory[r[ra]];
+      uint32_t* address=memory(r[ra]);
+      if(address==NULL){
+	printf("tried to read bad address 0x%x in r%x. aborting...\n",r[ra],ra);
+	fprintf(fp,"tried to read bad address 0x%x in r%x. aborting...\n",r[ra],ra);
+        return BADMEMORY;
+      }
+      r[rt]=*address;
     }
     break;
 
@@ -151,7 +178,10 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="sll";
     argnum=3;
     if(execmode){
-      r[rt]=r[ra]<<r[rb];
+      if(r[rb]>=32)
+	r[rt]=0;
+      else
+        r[rt]=r[ra] << r[rb];
     }
     break;
 
@@ -159,7 +189,10 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="srl";
     argnum=3;
     if(execmode){
-      r[rt]=r[ra]>>r[rb];
+      if(r[rb]>=32)
+	r[rt]=0;
+      else
+        r[rt]=r[ra] >> r[rb];
     }
     break;
 
@@ -317,10 +350,9 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
       fprintf(fp,"invalid instruction:%x",inst);
     fprintf(fp,"#%03x",pc);
     if(execmode)
-      fprintf(fp,"  18:%f  19:%f",u2f(r[0x18]),u2f(r[0x19]));
+      fprintf(fp,"\t2:%d\t3:%d\t5:%d\t6:%d\t7:%d\t8:%d\t9:%d\tstackFC:",r[2],r[3],r[5],r[6],r[7],r[8],r[9]);
     fprintf(fp,"\n");
-  }
-  
+  }  
   return nextpc;
 }
 
@@ -342,28 +374,6 @@ void dumpreg(int hexmode,FILE* fp){
       fprintf(fp,"%08x ",r[i]);
     else
       fprintf(fp,"%8d ",r[i]);
-  }
-  fprintf(fp,"\n");
-}
-
-
-void dumpmem(int num,int hexmode,FILE* fp){
-  if(hexmode)
-    fprintf(fp,"memory(hex)");
-  else
-    fprintf(fp,"memory(signed decimal)");
-  int i=0;
-  for(i=0;i<num;i++){
-    if(i%8==0){
-      if(hexmode)
-	fprintf(fp,"\n%2x:",i);
-      else
-	fprintf(fp,"\n%2x:",i);
-    }
-    if(hexmode)
-      fprintf(fp,"%08x ",memory[i]);
-    else
-      fprintf(fp,"%8d ",memory[i]);
   }
   fprintf(fp,"\n");
 }

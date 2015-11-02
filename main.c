@@ -13,15 +13,16 @@ int mymain(int argc,char* argv[]){
   FILE* mystdin=myopen("stdin","rb");
   FILE* mystdout=myopen("stdout","wb");
   
-  //load program and copy to memory
+  //load program 
   #define PROGMAXLENGTH 100000
   uint32_t program[PROGMAXLENGTH];
   int proglength=loadprog(in,program,PROGMAXLENGTH);
   fclose(in);
-
+  //copy to memory
   int j=0;
-  for(j=0;j<PROGMAXLENGTH;j++)
-    memory[j]=program[j];//
+  for(j=0;j<MEM_DATA;j++){
+    data[j]=program[j];
+  }
   
   //write out assembly
   int i=0;
@@ -60,6 +61,9 @@ int mymain(int argc,char* argv[]){
       fprintf(log,"program executed %d instructions, and hit an invalid instruction.\n",i);
       fprintf(log,"aborting...\n");
       break;
+    }else if(pc==BADMEMORY){
+      //messege already sent from exec 
+      break;
     }else if(pc<0){
       printf("!error in execution\t:program counter is negative!\n");
       printf("given pc:%d\tprogram range:0~%d\n",pc,proglength-1);
@@ -77,7 +81,7 @@ int mymain(int argc,char* argv[]){
       fprintf(log,"aborting...\n");
       break;
     }
-    #define MAXEXELENGTH 100000
+    #define MAXEXELENGTH 1000000
     if(i==MAXEXELENGTH){
   printf("program executed %d instructions without error.\n",MAXEXELENGTH);
       printf("aborting...\n");
@@ -90,8 +94,6 @@ int mymain(int argc,char* argv[]){
   
   fprintf(log,"\n");
   dumpreg(0,log);
-  fprintf(log,"\n");
-  dumpmem(64,0,log);
   printf("Dumped '%s' (executed %d instructions)\n",changeex(argv[1],".log"),simulationlength);
   
   return 0;
