@@ -1,1 +1,0 @@
-yutaka@yutaka-ThinkPad-T440p.19555:1444881123

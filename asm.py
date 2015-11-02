@@ -11,6 +11,7 @@ opdict={"limm":0xD0,
         "out":0xD3,
         "j":0xD4,
         "jr":0xD5,
+        "halt":0xD6,#simlator senyou
         "stw":0xD8,
         "ldw":0xD9,
         "str":0xDA,
@@ -41,7 +42,7 @@ opdict={"limm":0xD0,
 
 ignore={".text",".globl",".align",".data",".literal8"}
 nowrite=ignore
-onereg={"limm","j","in","out"}
+onereg={"limm","j","in","out","halt"}
 
 def get_labels(program):
     instnum=0
@@ -71,19 +72,28 @@ def float_to_cfloat(a):
         sign=0
     else:
         sign=1
-        
-    a=abs(a)
     
-    expo=int(math.log(a,2))+127
-    man=int(a/(2**(expo-127-23))-2**23)
+    a=abs(a)
+
+    if a!=0:
+        m,e=math.frexp(a)
+        expo=int(e+126)
+        man=int((m-0.5)*pow(2,24))
+    else:
+        expo=0
+        man=0
+    
     ret="{0:1b}".format(sign)
     ret+="{0:0>8b}".format(expo)
     ret+="{0:0>23b}".format(man)
+
+    
     byte=[0,0,0,0]
     for i in range(4):
         byte[i]=int(ret[i*8:(i+1)*8],2)
     return bytearray(byte)
-        
+
+    
 def fimm(s):
     if s.endswith("d"):
         return float(s[:-1])#todo
@@ -96,17 +106,21 @@ def write_inst(fp,a,b,c,d):
     fp.write(bytearray([a,b,c,d]))
 
 
-def write_binary(fp,program,labels):
+def write_binary(fp,fp_comment,program,program_org,labels):
+    instno=0
     for line,inst in enumerate(program):
+        wrote_flag=False
         print line
+        print inst
         if len(inst)==0:#nothing
-            continue
+            pass
         elif inst[0] in ignore:
-            continue
+            pass
         elif inst[0] in labels:
-            continue
+            pass
         elif inst[0]==".long":#long
             fp.write(float_to_cfloat(fimm(inst[1])))
+            wrote_flag=True
         elif inst[0] in onereg:#one reg operation
             if not(len(inst)==3):
                 print "wrong number of args in line {}.".format(line)
@@ -116,13 +130,14 @@ def write_binary(fp,program,labels):
                 write_inst(fp,\
                            opdict[inst[0]],\
                            reg(inst[1]),\
-                           imm(inst[2],labels)/0x100,\
+                           (imm(inst[2],labels)/0x100)%0x100,\
                            imm(inst[2],labels)%0x100,\
                 )
+                wrote_flag=True
         elif inst[0] in opdict:#three reg operation
-            if not(len(inst)==4):
+            if not(len(inst)==4 or len(inst)==3):#delete!
                 print "wrong number of args in line {}.".format(line)
-                print "'{}'".join(inst)
+                print " ".join(inst)
                 exit(1)
             else:
                 write_inst(fp,\
@@ -131,25 +146,40 @@ def write_binary(fp,program,labels):
                            reg(inst[2]),\
                            reg(inst[3]),\
                 )
+                wrote_flag=True
         else:
             print "undefined opcode in line {}".format(line)
             print " ".join(inst)
             exit(1)
+        if wrote_flag==True:
+            fp_comment.write(program_org[line].ljust(35)+"\t#{0:03X}\n".format(instno))
+            instno+=1
+        else:
+            fp_comment.write(program_org[line]+"\n")
 
 #================main=================
-argv=sys.argv
-file_in_name=sys.argv[1]
-file_out_name=sys.argv[1].split(".")[0]+".dat"
-file_in=open(file_in_name,"r")
-file_out=open(file_out_name,"wb")
+def main():
+    argv=sys.argv
+    file_in_name=sys.argv[1]
+    file_out_name=sys.argv[1].split(".")[0]+".dat"
+    file_comment_name=sys.argv[1].split(".")[0]+".com"
+    file_in=open(file_in_name,"r")
+    file_out=open(file_out_name,"wb")
+    file_comment=open(file_comment_name,"w")
 
-#load program and parse
-program=[list(chain.from_iterable([ss.split() for ss in s.split("#")[0].split(",")])) for s in file_in.read().split("\n")]
+    #load program and parse
+    program_org= file_in.read().split("\n")
+    program=[list(chain.from_iterable([ss.split() for ss in s.split("#")[0].split(",")])) for s in program_org]
 
-#get instnum & labels
-labels,instnum=get_labels(program)
+    #get instnum & labels
+    labels,instnum=get_labels(program)
 
-write_binary(file_out,program,labels)
+    write_binary(file_out,file_comment,program,program_org,labels)
+    
+    print("Assembling succeeded.")
+    print("Dumped '{}' ({} instructions).".format(file_out_name,instnum))
+    print("Dumped '{}'.".format(file_comment_name))
 
-print("Assembling succeeded.")
-print("Dumped '{}' ({} instructions).".format(file_out_name,instnum))
+
+if __name__ =="__main__":
+    main()

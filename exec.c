@@ -9,7 +9,7 @@ uint32_t memory[16777216];
 uint32_t r[256];
 int unassignedfound=0;
 
-int exec(uint32_t inst,int pc,int execmode,FILE *fp){
+int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout){
   int nextpc=pc+1;
   uint32_t opcode=takebits(inst,0,8);
   uint32_t rt=takebits(inst,8,16);
@@ -47,7 +47,10 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
     opname="in";
     argnum=1;
     if(execmode){
-      ;
+      unsigned char a;
+      fread(&a,sizeof(unsigned char),1,mystdin);
+      r[rt]=a;
+      //printf("in! %d\n",r[rt]);
     }
     break;
 
@@ -55,7 +58,9 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
     opname="out";
     argnum=1;
     if(execmode){
-      printf("%x\n",r[rt]);
+      unsigned char a=r[rt]%0x100;
+      //printf("out! %d\n",a);
+      fwrite(&a , sizeof(char) , 1 , mystdout);
     }
     break;
     
@@ -275,19 +280,29 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
     opname="fcmp";
     argnum=3;
     if(execmode){
-      if(r[ra]>r[rb])
+      if(fcmp(r[ra],r[rb])==1)
 	r[rt]=2;
-      else if(r[ra]==r[rb])
+      else if(fcmp(r[ra],r[rb])==0)
 	r[rt]=1;
       else
 	r[rt]=0;
+    }
+    break;
+
+  case 0xD6:
+    opname="halt";
+    argnum=0;
+    if(execmode){
+      nextpc=HALTPC;
     }
     break;
     
   default:
     opname="!unassigned opcode!";
     argnum=0;
-    unassignedfound=1;
+    if(execmode){
+      nextpc=INVALIDINSTPC;
+    }
     break;
     
   }
@@ -299,10 +314,10 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp){
     else if(argnum==3)
       fprintf(fp,"0x%x\t0x%x\t0x%x\t",rt,ra,rb);
     else
-      fprintf(fp,"instruction:%x",inst);
+      fprintf(fp,"invalid instruction:%x",inst);
     fprintf(fp,"#%03x",pc);
     if(execmode)
-      fprintf(fp," 0:%x 1:%x 2:%x 3:%x 4:%x 5:%x 6:%x 7:%x 8:%x 9:%x 20:%x mem2:%x  b00004:%x",r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],r[8],r[9],r[0x20],memory[2],memory[0xb00004]);
+      fprintf(fp,"  18:%f  19:%f",u2f(r[0x18]),u2f(r[0x19]));
     fprintf(fp,"\n");
   }
   
@@ -316,7 +331,7 @@ void dumpreg(int hexmode,FILE* fp){
   else
     fprintf(fp,"register(signed decimal)");
   int i=0;
-  for(i=0;i<256;i++){
+  for(i=0;i<32;i++){
     if(i%8==0){
       if(hexmode)
 	fprintf(fp,"\n%2x:",i);

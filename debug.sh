@@ -5,7 +5,7 @@ echo "Disassmebler&Simulator:"
 ./a tempdayo.dat
 
 echo "to binary and back to assembly" > tempdayo.res
-cat tempdayo >> tempdayo.res
+cat tempdayo.com >> tempdayo.res
 echo "
 
           |

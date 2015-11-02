@@ -7,12 +7,14 @@
 
 int mymain(int argc,char* argv[]){
   //open files
-  FILE* in=openrb(argv[1]);
-  FILE* out=openw(changeex(argv[1],".myasm"));
-  FILE* log=openw(changeex(argv[1],".log"));
+  FILE* in=myopen(argv[1],"rb");
+  FILE* out=myopen(changeex(argv[1],".myasm"),"w");
+  FILE* log=myopen(changeex(argv[1],".log"),"w");
+  FILE* mystdin=myopen("stdin","rb");
+  FILE* mystdout=myopen("stdout","wb");
   
   //load program and copy to memory
-  #define PROGMAXLENGTH 10000
+  #define PROGMAXLENGTH 100000
   uint32_t program[PROGMAXLENGTH];
   int proglength=loadprog(in,program,PROGMAXLENGTH);
   fclose(in);
@@ -24,26 +26,39 @@ int mymain(int argc,char* argv[]){
   //write out assembly
   int i=0;
   for(i=0;i<proglength;i++){
-    exec(program[i],i,0,out);
+    exec(program[i],i,0,out,NULL,NULL);
   }
   fclose(out);
-  if(unassignedfound){
-    printf("Found some unassigned opcodes!\n");
-    printf("Simulator will tread them as NOP.\n");
-    printf("Disassembling failed.\n");
-  }else{
-    printf("Disassembling succeeded without error.\n");
-  }
+  printf("Disassembling succeeded without error.\n");
   printf("Dumped '%s' (%d instructions)\n",changeex(argv[1],".myasm"),proglength);
   
   //simulate
   int pc=0;
   fprintf(log,"execution log\n");
   for(i=0;;i++){
-    pc=exec(program[pc],pc,1,log);
+    uint32_t oldpc=pc;
+    pc=exec(program[pc],pc,1,log,mystdin,mystdout);
     if(pc==proglength){
       printf("program reached the end without error.\n");
+      printf("program executed %d instructions.\n",i);
       fprintf(log,"program reached the end without error.\n");
+      fprintf(log,"program executed %d instructions.\n",i);
+      break;
+    }if(pc==HALTPC){
+      printf("halt!\n");
+      printf("program executed %d instructions without error,and hit halt.\n",i);
+      printf("aborting...\n");
+      fprintf(log,"halt!\n");
+      fprintf(log,"program executed %d instructions without error,and hit halt.\n",i);
+      fprintf(log,"aborting...\n");
+      break;
+    }else if(pc==INVALIDINSTPC){
+      printf("invalid instruction!:%x \n",program[oldpc]);
+      printf("program executed %d instructions, and hit an invalid instruction.\n",i);
+      printf("aborting...\n");
+      fprintf(log,"invalid instruction!:%x \n",program[oldpc]);
+      fprintf(log,"program executed %d instructions, and hit an invalid instruction.\n",i);
+      fprintf(log,"aborting...\n");
       break;
     }else if(pc<0){
       printf("!error in execution\t:program counter is negative!\n");
@@ -62,11 +77,11 @@ int mymain(int argc,char* argv[]){
       fprintf(log,"aborting...\n");
       break;
     }
-    #define MAXEXELENGTH 10000
+    #define MAXEXELENGTH 100000
     if(i==MAXEXELENGTH){
-      printf("program executed 10000 instructions without error.\n");
+  printf("program executed %d instructions without error.\n",MAXEXELENGTH);
       printf("aborting...\n");
-      fprintf(log,"program executed 10000 instructions without error.\n");
+      fprintf(log,"program executed %d instructions without error.\n",MAXEXELENGTH);
       fprintf(log,"aborting...\n");
       break;
     }
@@ -84,6 +99,7 @@ int mymain(int argc,char* argv[]){
 
 
 int main(int argc,char *argv[]){
+  //printf("%d %d\n",u2i(0xffff),u2i16(0xffff));
   mymain(argc,argv);
   return 0;
 }

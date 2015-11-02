@@ -4,19 +4,10 @@
 #include <string.h>
 #include "iroiro.h"
 
-FILE* openrb(const char* filename){
-  FILE* fp=fopen(filename,"rb");
+FILE* myopen(const char* filename,char* mode){
+  FILE* fp=fopen(filename,mode);
   if(fp==NULL){
-    printf("!error in open\t: no such file.\n");
-    exit(1);
-  }
-  return fp;
-}
-
-FILE* openw(const char* filename){
-  FILE* fp=fopen(filename,"w");
-  if(fp==NULL){
-    printf("!error in open\t:\n");
+    printf("!error in open\t: no such file as %s\n",filename);
     exit(1);
   }
   return fp;
@@ -91,6 +82,12 @@ uint32_t i2u(int i){
   Typechanger uni;
   uni.i=i;
   return uni.u;
+}
+
+float u2f(uint32_t u){
+  Typechanger uni;
+  uni.u=u;
+  return uni.f;
 }
 
 int u2i16(uint32_t u){
