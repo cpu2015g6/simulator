@@ -47,15 +47,23 @@ onereg={"limm","j","in","out","hlt"}
 def get_labels(program):
     instnum=0
     labels={}
+    datalist=[]
+    longmem=0xFFF00
     for inst in program:
         if len(inst)==0 or (inst[0] in nowrite):#nowrite or empty
             continue
+        elif inst[0]==".long":
+            datalist.append(float_to_cfloat(fimm(inst[1])))
         elif ":" in inst[0]:#label
-            labels[inst[0]]=instnum
-        else:#inst & ".long"
+            if inst[0].startswith("l."):
+                labels[inst[0]]=longmem
+                longmem+=1
+            else:
+                labels[inst[0]]=instnum
+        else:#inst 
             instnum+=1
-    return labels,instnum
-
+    return instnum,len(datalist),labels,datalist
+    
 def reg(s):
     if not s.startswith("r"):
         print "'{}' is not a register".format(s)
@@ -67,6 +75,9 @@ def imm(s,label):
     else:
         return int(s,0)
 
+def int_to_bytearray(a):
+    return bytearray([a/0x1000000,(a/0x10000)%256 ,(a/0x100)%256 ,a%256])
+        
 def float_to_cfloat(a):
     if a>=0:
         sign=0
@@ -119,8 +130,9 @@ def write_binary(fp,fp_comment,program,program_org,labels):
         elif inst[0] in labels:
             pass
         elif inst[0]==".long":#long
-            fp.write(float_to_cfloat(fimm(inst[1])))
-            wrote_flag=True
+            pass
+            #fp.write(float_to_cfloat(fimm(inst[1])))
+            #wrote_flag=True
         elif inst[0] in onereg:#one reg operation
             if not(len(inst)==3):
                 print "wrong number of args in line {}.".format(line)
@@ -157,6 +169,10 @@ def write_binary(fp,fp_comment,program,program_org,labels):
         else:
             fp_comment.write(program_org[line]+"\n")
 
+def write_datasection(fp,datalist):
+    for d in datalist:
+        fp.write(d)
+    
 #================main=================
 def main():
     argv=sys.argv
@@ -172,14 +188,20 @@ def main():
     program=[list(chain.from_iterable([ss.split() for ss in s.split("#")[0].split(",")])) for s in program_org]
 
     #get instnum & labels
-    labels,instnum=get_labels(program)
+    textlen,datalen,labels,datalist=get_labels(program)
 
-    write_binary(file_out,file_comment,program,program_org,labels)
+    file_out.write(int_to_bytearray(textlen))#header
+    file_out.write(int_to_bytearray(datalen))#header
+    write_binary(file_out,file_comment,program,program_org,labels)#text
+    write_datasection(file_out,datalist)#data
     
     print("Assembling succeeded.")
-    print("Dumped '{}' ({} instructions).".format(file_out_name,instnum))
+    print("Dumped '{}' ({} instructions).".format(file_out_name,textlen+datalen))
+    print("textlen:{} datalen:{}".format(textlen,datalen))
     print("Dumped '{}'.".format(file_comment_name))
 
 
 if __name__ =="__main__":
     main()
+
+#kuso code ni nattekita node ituka naosu

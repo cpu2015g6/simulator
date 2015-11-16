@@ -13,6 +13,10 @@ uint32_t stack[MEM_END-MEM_HEAP];
 uint32_t heap[MEM_HEAP-MEM_STACK];
 uint32_t r[256];
 
+#define PATLEN 3
+uint32_t last[PATLEN];
+int patterncount=0;
+
 uint32_t* memory(int no){
   if(0<=no && no<MEM_DATA)
     return data+(no);
@@ -24,6 +28,30 @@ uint32_t* memory(int no){
     return NULL;
 }
 
+void printreg(FILE *fp,int reg,int hexmode){
+  fprintf(fp,"\tr%x:",reg);
+  if(hexmode)
+    fprintf(fp,"0x%x",r[reg]);
+  else
+    fprintf(fp,"%d",r[reg]);
+}
+
+void printstack(FILE *fp,int no,int hexmode){
+  fprintf(fp,"\tS%x:",no);
+  if(hexmode)
+    fprintf(fp,"0x%x",stack[no]);
+  else
+    fprintf(fp,"%d",stack[no]);
+}
+
+void printheap(FILE *fp,int no,int hexmode){
+  fprintf(fp,"\tH%x:",no);
+  if(hexmode)
+    fprintf(fp,"0x%x",heap[no]);
+  else
+    fprintf(fp,"%d",heap[no]);
+}
+
 int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout){
   int nextpc=pc+1;
   uint32_t opcode=takebits(inst,0,8);
@@ -31,7 +59,6 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
   uint32_t ra=takebits(inst,16,24);
   uint32_t rb=takebits(inst,24,32);
   uint32_t imm=takebits(inst,16,32);
-  //  printf("%x:%x %x %x %x\n",inst,opcode,reg1,reg2,reg3);
 
   char* opname;
   int argnum;
@@ -349,8 +376,30 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     else
       fprintf(fp,"invalid instruction:%x",inst);
     fprintf(fp,"#%03x",pc);
-    if(execmode)
-      fprintf(fp,"\t2:%d\t3:%d\t5:%d\t6:%d\t7:%d\t8:%d\t9:%d\tstackFC:",r[2],r[3],r[5],r[6],r[7],r[8],r[9]);
+    if(execmode){
+      /*
+      printreg(fp,2,1);
+      printreg(fp,5,1);
+      printreg(fp,6,1);
+      printreg(fp,7,1);
+      printreg(fp,8,1);
+      printreg(fp,9,1);
+      printreg(fp,0xa,1);
+      printreg(fp,0x18,1);
+      printreg(fp,0x19,1);
+      printstack(fp,0xf0,1);
+      printstack(fp,0xfc,1);
+      printheap(fp,0x30,1);
+      */
+      int i=0;
+      for(i=0;i<PATLEN-1;i++){
+	last[i]=last[i+1];
+      }
+      last[PATLEN-1]=opcode;
+      if(last[0]==0xE6 && last[1]==0xD0 && last[2]==0xE3)
+	patterncount++;
+      
+    }
     fprintf(fp,"\n");
   }  
   return nextpc;

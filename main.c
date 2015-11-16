@@ -38,7 +38,7 @@ int mymain(int argc,char* argv[]){
   fprintf(log,"execution log\n");
   for(i=0;;i++){
     uint32_t oldpc=pc;
-    pc=exec(program[pc],pc,1,log,mystdin,mystdout);
+    pc=exec(program[pc],pc,1,NULL,mystdin,mystdout);
     if(pc==proglength){
       printf("program reached the end without error.\n");
       printf("program executed %d instructions.\n",i);
@@ -81,7 +81,7 @@ int mymain(int argc,char* argv[]){
       fprintf(log,"aborting...\n");
       break;
     }
-    #define MAXEXELENGTH 1000000
+    #define MAXEXELENGTH 100000000
     if(i==MAXEXELENGTH){
   printf("program executed %d instructions without error.\n",MAXEXELENGTH);
       printf("aborting...\n");
@@ -91,7 +91,9 @@ int mymain(int argc,char* argv[]){
     }
   }
   int simulationlength=i+1;
-  
+  extern int patterncount;
+  printf("patterncount %d\n",patterncount);
+ 
   fprintf(log,"\n");
   dumpreg(0,log);
   printf("Dumped '%s' (executed %d instructions)\n",changeex(argv[1],".log"),simulationlength);
