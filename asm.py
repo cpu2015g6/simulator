@@ -198,6 +198,7 @@ def main():
     print("Assembling succeeded.")
     print("Dumped '{}' ({} instructions).".format(file_out_name,textlen+datalen))
     print("textlen:{} datalen:{}".format(textlen,datalen))
+    print("Dumped '{}'.".format(file_out_name))
     print("Dumped '{}'.".format(file_comment_name))
 
 

@@ -5,25 +5,22 @@
 #include "exec.h"
 #include "fpu.h"
 
-#define MEM_STACK 0x0b00000
-#define MEM_HEAP  0x0c00000
-#define MEM_END   0x1000000
-uint32_t data[MEM_DATA];
-uint32_t stack[MEM_END-MEM_HEAP];
-uint32_t heap[MEM_HEAP-MEM_STACK];
+uint32_t data[DATA_SIZE];
+uint32_t stack[STACK_SIZE];
+uint32_t heap[HEAP_SIZE];
 uint32_t r[256];
 
-#define PATLEN 3
+#define PATLEN 3//gomi atode kesu
 uint32_t last[PATLEN];
 int patterncount=0;
 
 uint32_t* memory(int no){
-  if(0<=no && no<MEM_DATA)
-    return data+(no);
-  else if(MEM_STACK<=no && no<MEM_HEAP)
-    return stack+(no-MEM_STACK);
-  else if(MEM_HEAP<= no && no<MEM_END)
-    return heap+(no-MEM_HEAP);
+  if(HEAP_START<=no && no<HEAP_START+HEAP_SIZE)
+    return heap+(no-HEAP_START);
+  if(STACK_START<=no && no<STACK_START+STACK_SIZE)
+    return stack+(no-STACK_START);
+  if(DATA_START<=no && no<DATA_START+DATA_SIZE)
+    return data+(no-DATA_START);
   else
     return NULL;
 }

@@ -16,12 +16,17 @@ int mymain(int argc,char* argv[]){
   //load program 
   #define PROGMAXLENGTH 100000
   uint32_t program[PROGMAXLENGTH];
+  uint32_t textlen,datalen;
+  read32(in,&textlen);
+  read32(in,&datalen);
+  printf("%u %u\n",textlen,datalen);
   int proglength=loadprog(in,program,PROGMAXLENGTH);
   fclose(in);
-  //copy to memory
+  
+  //copy datasection to memory
   int j=0;
-  for(j=0;j<MEM_DATA;j++){
-    data[j]=program[j];
+  for(j=0;j<datalen;j++){
+    data[j]=program[j+textlen];
   }
   
   //write out assembly
@@ -38,7 +43,7 @@ int mymain(int argc,char* argv[]){
   fprintf(log,"execution log\n");
   for(i=0;;i++){
     uint32_t oldpc=pc;
-    pc=exec(program[pc],pc,1,NULL,mystdin,mystdout);
+    pc=exec(program[pc],pc,1,log,mystdin,mystdout);
     if(pc==proglength){
       printf("program reached the end without error.\n");
       printf("program executed %d instructions.\n",i);
@@ -81,7 +86,7 @@ int mymain(int argc,char* argv[]){
       fprintf(log,"aborting...\n");
       break;
     }
-    #define MAXEXELENGTH 100000000
+    #define MAXEXELENGTH 10000
     if(i==MAXEXELENGTH){
   printf("program executed %d instructions without error.\n",MAXEXELENGTH);
       printf("aborting...\n");
