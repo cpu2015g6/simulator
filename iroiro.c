@@ -90,6 +90,12 @@ float u2f(uint32_t u){
   return uni.f;
 }
 
+uint32_t f2u(float f){
+  Typechanger uni;
+  uni.u=f;
+  return uni.u;
+}
+
 int u2i16(uint32_t u){
   u*=0x10000;
   int i=u2i(u);

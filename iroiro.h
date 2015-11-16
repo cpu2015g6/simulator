@@ -12,4 +12,5 @@ int loadprog(FILE* in,uint32_t* program,int maxlength);
 int u2i(uint32_t u);
 uint32_t i2u(int i);
 float u2f(uint32_t u);
+uint32_t f2u(float f);
 int u2i16(uint32_t u);

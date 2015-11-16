@@ -86,9 +86,11 @@ int mymain(int argc,char* argv[]){
       fprintf(log,"aborting...\n");
       break;
     }
-    #define MAXEXELENGTH 10000
-    if(i==MAXEXELENGTH){
-  printf("program executed %d instructions without error.\n",MAXEXELENGTH);
+    #define MAXEXELENGTH 10000000
+    if(i%1000000==0)
+      printf("execution:%d\n",i);
+    if(i==MAXEXELENGTH){//i==MAXEXELENGTH
+      printf("program executed %d instructions without error.\n",MAXEXELENGTH);
       printf("aborting...\n");
       fprintf(log,"program executed %d instructions without error.\n",MAXEXELENGTH);
       fprintf(log,"aborting...\n");

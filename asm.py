@@ -32,10 +32,7 @@ opdict={"limm":0xD0,
         "jrlte":0xF5,
         "fadd":0xF8,
         "fmul":0xF9,
-        "fdiv":0xFA,
-        "fsin":0xFB,
-        "fcos":0xFC,
-        "fatan":0xFD,
+        "finv":0xFA,
         "fsqrt":0xFE,
         "fcmp":0xFF,
         }
@@ -48,7 +45,7 @@ def get_labels(program):
     instnum=0
     labels={}
     datalist=[]
-    longmem=0xFFF00
+    longmem=0xfff00
     for inst in program:
         if len(inst)==0 or (inst[0] in nowrite):#nowrite or empty
             continue
@@ -62,6 +59,8 @@ def get_labels(program):
                 labels[inst[0]]=instnum
         else:#inst 
             instnum+=1
+    for l in labels.iteritems():
+        print l
     return instnum,len(datalist),labels,datalist
     
 def reg(s):

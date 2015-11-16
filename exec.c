@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "iroiro.h"
 #include "exec.h"
 #include "fpu.h"
@@ -128,7 +129,8 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
       uint32_t* address=memory(r[rt]);
       if(address==NULL){
 	printf("tried to write bad address 0x%x in r%x. aborting...\n",r[rt],rt);
-	fprintf(fp,"tried to write bad address 0x%x in r%x. aborting...\n",r[rt],rt);
+	if(fp!=NULL)
+	  fprintf(fp,"tried to write bad address 0x%x in r%x. aborting...\n",r[rt],rt);
         return BADMEMORY;
       }
       *address=r[ra];
@@ -142,7 +144,8 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
       uint32_t* address=memory(r[ra]);
       if(address==NULL){
 	printf("tried to read bad address 0x%x in r%x. aborting...\n",r[ra],ra);
-	fprintf(fp,"tried to read bad address 0x%x in r%x. aborting...\n",r[ra],ra);
+	if(fp!=NULL)
+	  fprintf(fp,"tried to read bad address 0x%x in r%x. aborting...\n",r[ra],ra);
         return BADMEMORY;
       }
       r[rt]=*address;
@@ -290,7 +293,8 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="fadd";
     argnum=3;
     if(execmode){
-      r[rt]=fadd(r[ra],r[rb]);
+      r[rt]=f2u(u2f(r[ra])+u2f(r[rb]));
+      //r[rt]=fadd(r[ra],r[rb]);
     }
     break;
 
@@ -298,38 +302,26 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="fmul";
     argnum=3;
     if(execmode){
-      r[rt]=fmul(r[ra],r[rb]);
+      r[rt]=f2u(u2f(r[ra])*u2f(r[rb])); 
+      //r[rt]=fmul(r[ra],r[rb]);
     }
     break;
 
   case 0xFA:
-    opname="fdiv";
+    opname="finv";
     argnum=3;
     if(execmode){
-      r[rt]=fdiv(r[ra],r[rb]);
+      r[rt]=f2u(1/u2f(r[ra]));
+      //r[rt]=fdiv(r[ra],r[rb]);
     }
-    break;
-
-  case 0xFB:
-    opname="fsin";
-    argnum=3;
-    break;
-
-  case 0xFC:
-    opname="fcos";
-    argnum=3;
-    break;
-
-  case 0xFD:
-    opname="fatan";
-    argnum=3;
     break;
 
   case 0xFE:
     opname="fsqrt";
     argnum=3;
     if(execmode){
-      r[rt]=fsqrt(r[ra]);
+      r[rt]=f2u(sqrt(u2f(r[ra])));
+      //r[rt]=fsqrt(r[ra]);
     }
     break;
 
@@ -337,12 +329,20 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="fcmp";
     argnum=3;
     if(execmode){
-      if(fcmp(r[ra],r[rb])==1)
+      if(u2f(r[ra])>u2f(r[rb]))
+	r[rt]=2;
+      else if(u2f(r[ra])==u2f(r[rb]))
+	r[rt]=1;
+      else
+	r[rt]=0;
+      /*
+      if(fcmp(r[ra],r[rb])==1)  <= kawatta
 	r[rt]=2;
       else if(fcmp(r[ra],r[rb])==0)
 	r[rt]=1;
       else
 	r[rt]=0;
+      */
     }
     break;
 
@@ -389,7 +389,7 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
       printheap(fp,0x30,1);
       */
       int i=0;
-      for(i=0;i<PATLEN-1;i++){
+      for(i=0;i<PATLEN-1;i++){//log ni haittenai 
 	last[i]=last[i+1];
       }
       last[PATLEN-1]=opcode;
