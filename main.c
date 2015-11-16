@@ -28,7 +28,7 @@ int mymain(int argc,char* argv[]){
   for(j=0;j<datalen;j++){
     data[j]=program[j+textlen];
   }
-  
+
   //write out assembly
   int i=0;
   for(i=0;i<proglength;i++){

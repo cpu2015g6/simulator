@@ -26,28 +26,21 @@ uint32_t* memory(int no){
     return NULL;
 }
 
+
+void printmem(FILE *fp,int mem,int hexmode){
+  fprintf(fp,"\tmem %x:",mem);
+  if(hexmode)
+    fprintf(fp,"0x%x",*memory(mem));
+  else
+    fprintf(fp,"%d",*memory(mem));
+}
+
 void printreg(FILE *fp,int reg,int hexmode){
   fprintf(fp,"\tr%x:",reg);
   if(hexmode)
     fprintf(fp,"0x%x",r[reg]);
   else
     fprintf(fp,"%d",r[reg]);
-}
-
-void printstack(FILE *fp,int no,int hexmode){
-  fprintf(fp,"\tS%x:",no);
-  if(hexmode)
-    fprintf(fp,"0x%x",stack[no]);
-  else
-    fprintf(fp,"%d",stack[no]);
-}
-
-void printheap(FILE *fp,int no,int hexmode){
-  fprintf(fp,"\tH%x:",no);
-  if(hexmode)
-    fprintf(fp,"0x%x",heap[no]);
-  else
-    fprintf(fp,"%d",heap[no]);
 }
 
 int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout){
@@ -374,7 +367,7 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
       fprintf(fp,"invalid instruction:%x",inst);
     fprintf(fp,"#%03x",pc);
     if(execmode){
-      /*
+      
       printreg(fp,2,1);
       printreg(fp,5,1);
       printreg(fp,6,1);
@@ -384,10 +377,7 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
       printreg(fp,0xa,1);
       printreg(fp,0x18,1);
       printreg(fp,0x19,1);
-      printstack(fp,0xf0,1);
-      printstack(fp,0xfc,1);
-      printheap(fp,0x30,1);
-      */
+      printmem(fp,0xae,1);
       int i=0;
       for(i=0;i<PATLEN-1;i++){//log ni haittenai 
 	last[i]=last[i+1];

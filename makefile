@@ -7,7 +7,7 @@ OBJS=$(SRCS:.c=.o)
 DEPS=$(SRCS:.c=.dep)
 RM=rm -f
 $(TARGET): $(OBJS)
-	$(CC) $(LDFLAGS) -o $@ $^
+	$(CC) $(LDFLAGS) -o $@ $^ -lm
 %.dep:%.c
 	$(SHELL) -c '$(CC) -MM $< > $@'
 -include $(DEPS)
