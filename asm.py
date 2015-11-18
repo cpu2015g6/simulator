@@ -45,7 +45,7 @@ def get_labels(program):
     instnum=0
     labels={}
     datalist=[]
-    longmem=0xfff00
+    longmem=0x0
     for inst in program:
         if len(inst)==0 or (inst[0] in nowrite):#nowrite or empty
             continue

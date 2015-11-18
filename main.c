@@ -43,7 +43,7 @@ int mymain(int argc,char* argv[]){
   fprintf(log,"execution log\n");
   for(i=0;;i++){
     uint32_t oldpc=pc;
-    pc=exec(program[pc],pc,1,log,mystdin,mystdout);
+    pc=exec(program[pc],pc,1,NULL,mystdin,mystdout);
     if(pc==proglength){
       printf("program reached the end without error.\n");
       printf("program executed %d instructions.\n",i);
@@ -88,8 +88,8 @@ int mymain(int argc,char* argv[]){
     }
     #define MAXEXELENGTH 10000000
     if(i%1000000==0)
-      printf("execution:%d\n",i);
-    if(i==MAXEXELENGTH){//i==MAXEXELENGTH
+      printf("execution:%d\tpc:%x\n",i,pc);
+    if(0){//i==MAXEXELENGTH
       printf("program executed %d instructions without error.\n",MAXEXELENGTH);
       printf("aborting...\n");
       fprintf(log,"program executed %d instructions without error.\n",MAXEXELENGTH);

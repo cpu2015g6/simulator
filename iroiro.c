@@ -92,7 +92,7 @@ float u2f(uint32_t u){
 
 uint32_t f2u(float f){
   Typechanger uni;
-  uni.u=f;
+  uni.f=f;
   return uni.u;
 }
 

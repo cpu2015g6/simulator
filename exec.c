@@ -121,7 +121,7 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     if(execmode){
       uint32_t* address=memory(r[rt]);
       if(address==NULL){
-	printf("tried to write bad address 0x%x in r%x. aborting...\n",r[rt],rt);
+	printf("tried to write bad address 0x%x in r%x (pc is %x). aborting...\n",r[rt],rt,pc);
 	if(fp!=NULL)
 	  fprintf(fp,"tried to write bad address 0x%x in r%x. aborting...\n",r[rt],rt);
         return BADMEMORY;
@@ -136,7 +136,7 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     if(execmode){
       uint32_t* address=memory(r[ra]);
       if(address==NULL){
-	printf("tried to read bad address 0x%x in r%x. aborting...\n",r[ra],ra);
+	printf("tried to read bad address 0x%x in r%x (pc is %x). aborting...\n",r[ra],ra,pc);
 	if(fp!=NULL)
 	  fprintf(fp,"tried to read bad address 0x%x in r%x. aborting...\n",r[ra],ra);
         return BADMEMORY;
@@ -322,14 +322,16 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="fcmp";
     argnum=3;
     if(execmode){
+      
       if(u2f(r[ra])>u2f(r[rb]))
 	r[rt]=2;
       else if(u2f(r[ra])==u2f(r[rb]))
 	r[rt]=1;
       else
 	r[rt]=0;
+      
       /*
-      if(fcmp(r[ra],r[rb])==1)  <= kawatta
+      if(fcmp(r[ra],r[rb])==1)  
 	r[rt]=2;
       else if(fcmp(r[ra],r[rb])==0)
 	r[rt]=1;
@@ -343,6 +345,7 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="halt";
     argnum=0;
     if(execmode){
+      printf("you hit halt! pc:%x \n",pc);
       nextpc=HALTPC;
     }
     break;
@@ -388,7 +391,13 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
       
     }
     fprintf(fp,"\n");
-  }  
+  }
+
+  if(execmode){
+#define mainfunc 0x5fea//temp
+    if((pc>mainfunc && nextpc<mainfunc))
+      printf("pc :%x -> %x \n",pc,nextpc);
+  }
   return nextpc;
 }
 
