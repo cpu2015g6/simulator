@@ -43,7 +43,7 @@ int mymain(int argc,char* argv[]){
   fprintf(log,"execution log\n");
   for(i=0;;i++){
     uint32_t oldpc=pc;
-    pc=exec(program[pc],pc,1,NULL,mystdin,mystdout);
+    pc=exec(program[pc],pc,1,log,mystdin,mystdout);
     if(pc==proglength){
       printf("program reached the end without error.\n");
       printf("program executed %d instructions.\n",i);
