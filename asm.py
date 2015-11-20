@@ -50,7 +50,7 @@ def get_labels(program):
         if len(inst)==0 or (inst[0] in nowrite):#nowrite or empty
             continue
         elif inst[0]==".long":
-            datalist.append(int_to_bytearray(fimm(inst[1])))
+            datalist.append(int_to_bytearray(int(inst[1])))
         elif ":" in inst[0]:#label
             if inst[0].startswith("l."):
                 labels[inst[0]]=longmem
