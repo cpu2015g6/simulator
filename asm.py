@@ -50,7 +50,7 @@ def get_labels(program):
         if len(inst)==0 or (inst[0] in nowrite):#nowrite or empty
             continue
         elif inst[0]==".long":
-            datalist.append(float_to_cfloat(fimm(inst[1])))
+            datalist.append(int_to_bytearray(fimm(inst[1])))
         elif ":" in inst[0]:#label
             if inst[0].startswith("l."):
                 labels[inst[0]]=longmem
@@ -77,7 +77,7 @@ def imm(s,label):
 def int_to_bytearray(a):
     return bytearray([a/0x1000000,(a/0x10000)%256 ,(a/0x100)%256 ,a%256])
         
-def float_to_cfloat(a):
+def float_to_bytearray(a):
     if a>=0:
         sign=0
     else:
@@ -130,8 +130,6 @@ def write_binary(fp,fp_comment,program,program_org,labels):
             pass
         elif inst[0]==".long":#long
             pass
-            #fp.write(float_to_cfloat(fimm(inst[1])))
-            #wrote_flag=True
         elif inst[0] in onereg:#one reg operation
             if not(len(inst)==3):
                 print "wrong number of args in line {}.".format(line)
