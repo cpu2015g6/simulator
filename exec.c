@@ -286,16 +286,8 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="fadd";
     argnum=3;
     if(execmode){
-      // uint32_t rra,rrb;
-      // float madefadd,cfadd;
-      //rra=r[ra];
-      //rrb=r[rb];
       //r[rt]=f2u(u2f(r[ra])+u2f(r[rb]));
       r[rt]=fadd(r[ra],r[rb]);
-      //madefadd=u2f(fadd(rra,rrb));
-      //cfadd=u2f(rra)+u2f(rrb);
-      //if(madefadd!=cfadd && cfadd>0.1)
-      // printf("%f+%f=%f,%f\n",u2f(rra),u2f(rrb),madefadd,cfadd);
     }
     break;
 
