@@ -286,8 +286,16 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="fadd";
     argnum=3;
     if(execmode){
-      r[rt]=f2u(u2f(r[ra])+u2f(r[rb]));
-      //r[rt]=fadd(r[ra],r[rb]);
+      // uint32_t rra,rrb;
+      // float madefadd,cfadd;
+      //rra=r[ra];
+      //rrb=r[rb];
+      //r[rt]=f2u(u2f(r[ra])+u2f(r[rb]));
+      r[rt]=fadd(r[ra],r[rb]);
+      //madefadd=u2f(fadd(rra,rrb));
+      //cfadd=u2f(rra)+u2f(rrb);
+      //if(madefadd!=cfadd && cfadd>0.1)
+      // printf("%f+%f=%f,%f\n",u2f(rra),u2f(rrb),madefadd,cfadd);
     }
     break;
 
@@ -295,8 +303,8 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="fmul";
     argnum=3;
     if(execmode){
-      r[rt]=f2u(u2f(r[ra])*u2f(r[rb])); 
-      //r[rt]=fmul(r[ra],r[rb]);
+      //r[rt]=f2u(u2f(r[ra])*u2f(r[rb])); 
+      r[rt]=fmul(r[ra],r[rb]);
     }
     break;
 
@@ -304,8 +312,8 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="finv";
     argnum=3;
     if(execmode){
-      r[rt]=f2u(1/u2f(r[ra]));
-      //r[rt]=fdiv(r[ra],r[rb]);
+      //r[rt]=f2u(1/u2f(r[ra]));
+      r[rt]=finv(r[ra]);
     }
     break;
 
@@ -313,8 +321,8 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="fsqrt";
     argnum=3;
     if(execmode){
-      r[rt]=f2u(sqrt(u2f(r[ra])));
-      //r[rt]=fsqrt(r[ra]);
+      //r[rt]=f2u(sqrt(u2f(r[ra])));
+      r[rt]=fsqrt(r[ra]);
     }
     break;
 
@@ -322,22 +330,15 @@ int exec(uint32_t inst,int pc,int execmode,FILE *fp,FILE *mystdin,FILE *mystdout
     opname="fcmp";
     argnum=3;
     if(execmode){
-      
+      /*
       if(u2f(r[ra])>u2f(r[rb]))
 	r[rt]=2;
       else if(u2f(r[ra])==u2f(r[rb]))
 	r[rt]=1;
       else
 	r[rt]=0;
-      
-      /*
-      if(fcmp(r[ra],r[rb])==1)  
-	r[rt]=2;
-      else if(fcmp(r[ra],r[rb])==0)
-	r[rt]=1;
-      else
-	r[rt]=0;
       */
+      r[rt]=fcmp(r[ra],r[rb]);      
     }
     break;
 

@@ -30,7 +30,7 @@ int mymain(int argc,char* argv[]){
   }
 
   //write out assembly
-  int i=0;
+  long i=0;
   for(i=0;i<proglength;i++){
     exec(program[i],i,0,out,NULL,NULL);
   }
@@ -43,27 +43,27 @@ int mymain(int argc,char* argv[]){
   fprintf(log,"execution log\n");
   for(i=0;;i++){
     uint32_t oldpc=pc;
-    pc=exec(program[pc],pc,1,log,mystdin,mystdout);
+    pc=exec(program[pc],pc,1,NULL,mystdin,mystdout);
     if(pc==proglength){
       printf("program reached the end without error.\n");
-      printf("program executed %d instructions.\n",i);
+      printf("program executed %ld instructions.\n",i);
       fprintf(log,"program reached the end without error.\n");
-      fprintf(log,"program executed %d instructions.\n",i);
+      fprintf(log,"program executed %ld instructions.\n",i);
       break;
     }if(pc==HALTPC){
       printf("halt!\n");
-      printf("program executed %d instructions without error,and hit halt.\n",i);
+      printf("program executed %ld instructions without error,and hit halt.\n",i);
       printf("aborting...\n");
       fprintf(log,"halt!\n");
-      fprintf(log,"program executed %d instructions without error,and hit halt.\n",i);
+      fprintf(log,"program executed %ld instructions without error,and hit halt.\n",i);
       fprintf(log,"aborting...\n");
       break;
     }else if(pc==INVALIDINSTPC){
       printf("invalid instruction!:%x \n",program[oldpc]);
-      printf("program executed %d instructions, and hit an invalid instruction.\n",i);
+      printf("program executed %ld instructions, and hit an invalid instruction.\n",i);
       printf("aborting...\n");
       fprintf(log,"invalid instruction!:%x \n",program[oldpc]);
-      fprintf(log,"program executed %d instructions, and hit an invalid instruction.\n",i);
+      fprintf(log,"program executed %ld instructions, and hit an invalid instruction.\n",i);
       fprintf(log,"aborting...\n");
       break;
     }else if(pc==BADMEMORY){
@@ -88,7 +88,7 @@ int mymain(int argc,char* argv[]){
     }
     #define MAXEXELENGTH 10000000
     if(i%1000000==0)
-      printf("execution:%d\tpc:%x\n",i,pc);
+      printf("execution:%ld\tpc:%x\n",i,pc);
     if(0){//i==MAXEXELENGTH
       printf("program executed %d instructions without error.\n",MAXEXELENGTH);
       printf("aborting...\n");
@@ -97,13 +97,13 @@ int mymain(int argc,char* argv[]){
       break;
     }
   }
-  int simulationlength=i+1;
+  long int simulationlength=i+1;
   extern int patterncount;
   printf("patterncount %d\n",patterncount);
  
   fprintf(log,"\n");
   dumpreg(0,log);
-  printf("Dumped '%s' (executed %d instructions)\n",changeex(argv[1],".log"),simulationlength);
+  printf("Dumped '%s' (executed %ld instructions)\n",changeex(argv[1],".log"),simulationlength);
   
   return 0;
 }
