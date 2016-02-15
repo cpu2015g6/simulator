@@ -32,7 +32,7 @@ int mymain(int argc,char* argv[]){
   //write out assembly
   long i=0;
   for(i=0;i<proglength;i++){
-    exec(program[i],i,0,out,NULL,NULL);
+    exec2(program[i],i,0,out,NULL,NULL);
   }
   fclose(out);
   printf("Disassembling succeeded without error.\n");
@@ -43,7 +43,8 @@ int mymain(int argc,char* argv[]){
   fprintf(log,"execution log\n");
   for(i=0;;i++){
     uint32_t oldpc=pc;
-    pc=exec(program[pc],pc,1,NULL,mystdin,mystdout);
+    pc=exec2(program[pc],pc,1,NULL,mystdin,mystdout);
+#define MAXEXELENGTH -1
     if(pc==proglength){
       printf("program reached the end without error.\n");
       printf("program executed %ld instructions.\n",i);
@@ -86,10 +87,9 @@ int mymain(int argc,char* argv[]){
       fprintf(log,"aborting...\n");
       break;
     }
-    #define MAXEXELENGTH 10000000
     if(i%1000000==0)
       printf("execution:%ld\tpc:%x\n",i,pc);
-    if(0){//i==MAXEXELENGTH
+    if(i==MAXEXELENGTH){//i==MAXEXELENGTH
       printf("program executed %d instructions without error.\n",MAXEXELENGTH);
       printf("aborting...\n");
       fprintf(log,"program executed %d instructions without error.\n",MAXEXELENGTH);
@@ -104,6 +104,13 @@ int mymain(int argc,char* argv[]){
   fprintf(log,"\n");
   dumpreg(0,log);
   printf("Dumped '%s' (executed %ld instructions)\n",changeex(argv[1],".log"),simulationlength);
+
+  int ii=0;
+  for(ii=0;ii<256;ii++){
+    if(count[ii])
+      printf("opcode %x :executed %ld times\n",ii,count[ii]);
+  }
+  
   
   return 0;
 }

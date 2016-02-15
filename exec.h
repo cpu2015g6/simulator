@@ -1,4 +1,5 @@
 int exec(uint32_t inst,int pc,int execmode,FILE* fp,FILE *mystdin,FILE *mystdout);
+int exec2(uint32_t inst,int pc,int execmode,FILE* fp,FILE *mystdin,FILE *mystdout);
 void dumpreg(int hexmode,FILE* fp);
 uint32_t* memory(int no);
 
@@ -12,7 +13,15 @@ uint32_t* memory(int no);
 #define STACK_SIZE (MEM_END-STACK_START-1)
 
 extern uint32_t data[DATA_SIZE]; 
+extern long int count[256];
 
 #define HALTPC -1
 #define INVALIDINSTPC -2
 #define BADMEMORY -3
+
+
+#define OP2IC 1
+#define OP2I 2
+#define OP1 3
+#define OP3C 4
+#define OP3 5

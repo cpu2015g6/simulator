@@ -101,3 +101,7 @@ uint32_t fadd(uint32_t a, uint32_t b){
  
   return absfadd(a,b);
 }
+
+uint32_t fabsol(uint32_t a){
+  return a&0x7FFFFFFF;
+} 

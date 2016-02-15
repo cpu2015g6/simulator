@@ -5,3 +5,6 @@ uint32_t fmul(uint32_t a,uint32_t b);
 uint32_t fsqrt(uint32_t a);
 //uint32_t ftoi(uint32_t a,uint32_t b);
 uint32_t fcmp(uint32_t a,uint32_t b);  // double include?
+
+uint32_t fneg(uint32_t a);
+uint32_t fabsol(uint32_t a);

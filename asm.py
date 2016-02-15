@@ -2,40 +2,15 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from itertools import chain
 import math
+import os
+from itertools import chain
 
-opdict={"limm":0xD0,
-        "cmp":0xD1,
-        "in":0xD2,
-        "out":0xD3,
-        "j":0xD4,
-        "jr":0xD5,
-        "hlt":0xD6,#simlator senyou
-        "stw":0xD8,
-        "ldw":0xD9,
-        "str":0xDA,
-        "ldr":0xDB,
-        "add":0xE0,
-        "sub":0xE1,
-        "and":0xE2,
-        "or":0xE3,
-        "xor":0xE4,
-        "not":0xE5,
-        "sll":0xE6,
-        "srl":0xE7,
-        "jreq":0xF0,
-        "jrneq":0xF1,
-        "jrgt":0xF2,
-        "jrgte":0xF3,
-        "jrlt":0xF4,
-        "jrlte":0xF5,
-        "fadd":0xF8,
-        "fmul":0xF9,
-        "finv":0xFA,
-        "fsqrt":0xFE,
-        "fcmp":0xFF,
-        }
+op1={"limm":1,"in":2,"out":3,"hlt":4}
+op2i={"stwi":1,"ldwi":2,"jif":3,"ci":4,"addi":5,"subi":6}
+op2ic={"cmpic":1,"cmpaic":2,"jic":3,"fjic":4}
+op3c={"cmpc":1,"fcmpc":2,"cmpac":3,"fcmpac":4,"jrc":5,"fjrc":6}
+op3={"jrf":0,"cr":1,"stw":2,"ldw":3,"add":4,"sub":5,"and":6,"or":7,"xor":8,"sll":9,"srl":10,"fadd":11,"fsub":12,"fmul":13,"finv":14,"faba":15,"fsqrt":16}
 
 ignore={".text",".globl",".align",".data",".literal8"}
 nowrite=ignore
@@ -62,7 +37,7 @@ def get_labels(program):
     for l in labels.iteritems():
         print l
     return instnum,len(datalist),labels,datalist
-    
+   
 def reg(s):
     if not s.startswith("r"):
         print "'{}' is not a register".format(s)
@@ -74,9 +49,14 @@ def imm(s,label):
     else:
         return int(s,0)
 
+def cond(s,label):
+    ret=imm(s,label)
+    assert(0<=ret and ret<=6)
+    return ret
+        
 def int_to_bytearray(a):
     return bytearray([a/0x1000000,(a/0x10000)%256 ,(a/0x100)%256 ,a%256])
-        
+    
 def float_to_bytearray(a):
     if a>=0:
         sign=0
@@ -96,7 +76,6 @@ def float_to_bytearray(a):
     ret="{0:1b}".format(sign)
     ret+="{0:0>8b}".format(expo)
     ret+="{0:0>23b}".format(man)
-
     
     byte=[0,0,0,0]
     for i in range(4):
@@ -130,32 +109,65 @@ def write_binary(fp,fp_comment,program,program_org,labels):
             pass
         elif inst[0]==".long":#long
             pass
-        elif inst[0] in onereg:#one reg operation
+
+
+#=========================================================================--            
+        elif inst[0] in op1:
             if not(len(inst)==3):
                 print "wrong number of args in line {}.".format(line)
                 print " ".join(inst)
                 exit(1)
             else:
-                write_inst(fp,\
-                           opdict[inst[0]],\
-                           reg(inst[1]),\
-                           (imm(inst[2],labels)/0x100)%0x100,\
-                           imm(inst[2],labels)%0x100,\
-                )
+                vl=[op1[inst[0]] , reg(inst[1]) , imm(inst[2],labels) ,0]
+                sl=[9,5,16,2]
+                fp.write(concat(vl,sl))
                 wrote_flag=True
-        elif inst[0] in opdict:#three reg operation
-            if not(len(inst)==4 or len(inst)==3):#delete!
+                
+        elif inst[0] in op2i:
+            if not(len(inst)==4):
                 print "wrong number of args in line {}.".format(line)
                 print " ".join(inst)
                 exit(1)
             else:
-                write_inst(fp,\
-                           opdict[inst[0]],\
-                           reg(inst[1]),\
-                           reg(inst[2]),\
-                           reg(inst[3]),\
-                )
+                vl=[op2i[inst[0]] , reg(inst[1]) , reg(inst[2]) , imm(inst[3],labels)]
+                sl=[6,5,5,16]
+                fp.write(concat(vl,sl))
                 wrote_flag=True
+
+        elif inst[0] in op2ic:
+            if not(len(inst)==5):
+                print "wrong number of args in line {}.".format(line)
+                print " ".join(inst)
+                exit(1)
+            else:
+                vl=[op2ic[inst[0]] ,cond(inst[4],labels) , reg(inst[1]) , reg(inst[2]) , imm(inst[3],labels)]
+                sl=[3,3,5,5,16]
+                fp.write(concat(vl,sl))
+                wrote_flag=True
+
+        elif inst[0] in op3c:
+            if not(len(inst)==5):
+                print "wrong number of args in line {}.".format(line)
+                print " ".join(inst)
+                exit(1)
+            else:
+                vl=[op3c[inst[0]] ,cond(inst[4],labels) , reg(inst[1]) , reg(inst[2]) , reg(inst[3]) , 0]
+                sl=[12,3,5,5,5,2]
+                fp.write(concat(vl,sl))
+                wrote_flag=True
+
+        elif inst[0] in op3:
+            if not(len(inst)==4):
+                print "wrong number of args in line {}.".format(line)
+                print " ".join(inst)
+                exit(1)
+            else:
+                vl=[op3[inst[0]] , reg(inst[1]) , reg(inst[2]) , reg(inst[3])]
+                sl=[17,5,5,5]
+                fp.write(concat(vl,sl))
+                wrote_flag=True
+#================================================================================        
+        
         else:
             print "undefined opcode in line {}".format(line)
             print " ".join(inst)
@@ -169,7 +181,19 @@ def write_binary(fp,fp_comment,program,program_org,labels):
 def write_datasection(fp,datalist):
     for d in datalist:
         fp.write(d)
-    
+
+        
+def concat(vl,sl):
+    l=[]
+    for v,s in zip(vl,sl):
+        a="0:0>{}b".format(s)
+        a="{"+a+"}"
+        a=a.format(v)
+        assert(len(a)==s)
+        l.append(a)
+    return int_to_bytearray( int("".join(l),2) )
+            
+        
 #================main=================
 def main():
     argv=sys.argv
